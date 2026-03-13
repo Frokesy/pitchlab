@@ -6,6 +6,7 @@ type PitchBoardProps = {
   boardState: BoardState;
   pendingPoint: Point | null;
   pitchRef: RefObject<HTMLDivElement | null>;
+  selectedPlayerId: string | null;
   toolMode: ToolMode;
   onPitchPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onPlayerPointerDown: (playerId: string, event: ReactPointerEvent<HTMLButtonElement>) => void;
@@ -15,6 +16,7 @@ const PitchBoard = ({
   boardState,
   pendingPoint,
   pitchRef,
+  selectedPlayerId,
   toolMode,
   onPitchPointerDown,
   onPlayerPointerDown,
@@ -96,7 +98,9 @@ const PitchBoard = ({
       {boardState.players.map((player) => (
         <button
           key={player.id}
-          className={`player-token ${player.team === 'home' ? 'player-token--home' : 'player-token--away'}`}
+          className={`player-token ${
+            player.team === 'home' ? 'player-token--home' : 'player-token--away'
+          } ${selectedPlayerId === player.id ? 'player-token--selected' : ''}`}
           style={{ left: `${player.x}%`, top: `${player.y}%` }}
           onPointerDown={(event) => onPlayerPointerDown(player.id, event)}
         >

@@ -1,10 +1,16 @@
 import { formationTemplates, toolOptions } from '../features/board/data';
-import type { FormationKey, ToolMode } from '../features/board/types';
+import type { FormationKey, Player, TeamSide, ToolMode } from '../features/board/types';
 
 type BoardControlsProps = {
   currentFormation: FormationKey;
+  placementTeam: TeamSide;
+  selectedPlayer: Player | null;
   toolMode: ToolMode;
+  onAddPlayer: () => void;
   onFormationChange: (formation: FormationKey) => void;
+  onPlacementTeamChange: (team: TeamSide) => void;
+  onRemoveSelectedPlayer: () => void;
+  onSwitchSelectedPlayerTeam: () => void;
   onToolChange: (tool: ToolMode) => void;
   onClearArrows: () => void;
   onResetBoard: () => void;
@@ -12,8 +18,14 @@ type BoardControlsProps = {
 
 const BoardControls = ({
   currentFormation,
+  placementTeam,
+  selectedPlayer,
   toolMode,
+  onAddPlayer,
   onFormationChange,
+  onPlacementTeamChange,
+  onRemoveSelectedPlayer,
+  onSwitchSelectedPlayerTeam,
   onToolChange,
   onClearArrows,
   onResetBoard,
@@ -55,6 +67,53 @@ const BoardControls = ({
             </button>
           ))}
         </div>
+      </div>
+
+      <div>
+        <p className="pitchlab-section-label">Players</p>
+        <div className="mt-3 flex gap-2">
+          {(['home', 'away'] as TeamSide[]).map((team) => (
+            <button
+              key={team}
+              className={`pitchlab-chip ${
+                placementTeam === team ? 'pitchlab-chip--active' : ''
+              }`}
+              onClick={() => onPlacementTeamChange(team)}
+            >
+              {team === 'home' ? 'Home team' : 'Opponent'}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 grid gap-2">
+          <button className="pitchlab-button pitchlab-button--ghost" onClick={onAddPlayer}>
+            Add {placementTeam === 'home' ? 'home' : 'opponent'} player
+          </button>
+          <button
+            className="pitchlab-button pitchlab-button--ghost"
+            onClick={onSwitchSelectedPlayerTeam}
+            disabled={!selectedPlayer}
+          >
+            {selectedPlayer
+              ? `Move ${selectedPlayer.label} to ${
+                  selectedPlayer.team === 'home' ? 'opponent' : 'home'
+                }`
+              : 'Switch selected team'}
+          </button>
+          <button
+            className="pitchlab-button pitchlab-button--ghost"
+            onClick={onRemoveSelectedPlayer}
+            disabled={!selectedPlayer}
+          >
+            {selectedPlayer ? `Remove ${selectedPlayer.label}` : 'Remove selected player'}
+          </button>
+        </div>
+
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+          {selectedPlayer
+            ? `${selectedPlayer.label} #${selectedPlayer.number} is selected. Drag to reposition or move between teams.`
+            : 'Select a player on the board to switch teams or remove them.'}
+        </p>
       </div>
 
       <div>

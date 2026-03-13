@@ -23,6 +23,7 @@ import type {
   SavedPlay,
   ToolMode,
 } from './features/board/types';
+type TeamSide = 'home' | 'away';
 
 const App = () => {
   const initialSharedState = useMemo(() => {
@@ -33,16 +34,20 @@ const App = () => {
   }, []);
 
   const [boardState, setBoardState] = useState<BoardState>(
-    initialSharedState ?? defaultBoardState('4-3-3'),
+    initialSharedState ?? defaultBoardState('4-3-3')
   );
   const [toolMode, setToolMode] = useState<ToolMode>('select');
   const [pendingPoint, setPendingPoint] = useState<Point | null>(null);
   const [playName, setPlayName] = useState('Wing overload');
-  const [savedPlays, setSavedPlays] = useState<SavedPlay[]>(() => loadSavedPlays());
+  const [savedPlays, setSavedPlays] = useState<SavedPlay[]>(() =>
+    loadSavedPlays()
+  );
   const [shareStatus, setShareStatus] = useState('');
   const [draggingPlayerId, setDraggingPlayerId] = useState<string | null>(null);
   const [historyPast, setHistoryPast] = useState<BoardState[]>([]);
   const [historyFuture, setHistoryFuture] = useState<BoardState[]>([]);
+  const [placementTeam, setPlacementTeam] = useState<TeamSide>('away');
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const pitchRef = useRef<HTMLDivElement | null>(null);
   const boardStateRef = useRef(boardState);
   const dragOriginRef = useRef<BoardState | null>(null);
@@ -63,6 +68,8 @@ const App = () => {
   const currentFormation = boardState.formation;
   const canUndo = historyPast.length > 0;
   const canRedo = historyFuture.length > 0;
+  const selectedPlayer =
+    boardState.players.find((player) => player.id === selectedPlayerId) ?? null;
 
   const activeShareLink = useMemo(() => {
     const encoded = encodeBoardState(boardState);
@@ -112,7 +119,7 @@ const App = () => {
       setBoardState((current) => ({
         ...current,
         players: current.players.map((player) =>
-          player.id === draggingPlayerId ? { ...player, ...point } : player,
+          player.id === draggingPlayerId ? { ...player, ...point } : player
         ),
       }));
     };
@@ -152,12 +159,15 @@ const App = () => {
     if (toolMode === 'erase') {
       commitBoardState({
         ...boardState,
-        arrows: boardState.arrows.filter((arrow) => shouldKeepArrow(point, arrow)),
+        arrows: boardState.arrows.filter((arrow) =>
+          shouldKeepArrow(point, arrow)
+        ),
       });
       return;
     }
 
     if (toolMode === 'select') {
+      setSelectedPlayerId(null);
       setPendingPoint(null);
       return;
     }
@@ -199,7 +209,11 @@ const App = () => {
   };
 
   const handleShare = async () => {
-    window.history.replaceState({}, '', `#play=${encodeBoardState(boardState)}`);
+    window.history.replaceState(
+      {},
+      '',
+      `#play=${encodeBoardState(boardState)}`
+    );
 
     try {
       await navigator.clipboard.writeText(activeShareLink);
@@ -216,7 +230,9 @@ const App = () => {
 
     const previousState = historyPast[historyPast.length - 1];
     setHistoryPast((previous) => previous.slice(0, -1));
-    setHistoryFuture((future) => [boardStateRef.current, ...future].slice(0, 50));
+    setHistoryFuture((future) =>
+      [boardStateRef.current, ...future].slice(0, 50)
+    );
     setBoardState(previousState);
     setPendingPoint(null);
   };
@@ -228,9 +244,55 @@ const App = () => {
 
     const [nextState, ...remaining] = historyFuture;
     setHistoryFuture(remaining);
-    setHistoryPast((previous) => [...previous.slice(-49), boardStateRef.current]);
+    setHistoryPast((previous) => [
+      ...previous.slice(-49),
+      boardStateRef.current,
+    ]);
     setBoardState(nextState);
     setPendingPoint(null);
+  };
+
+  const handleAddPlayer = () => {
+    const nextPlayer = createBenchPlayer(placementTeam, boardState.players);
+    commitBoardState({
+      ...boardState,
+      players: [...boardState.players, nextPlayer],
+    });
+    setSelectedPlayerId(nextPlayer.id);
+    setShareStatus(
+      placementTeam === 'home' ? 'Home player added' : 'Opponent player added'
+    );
+  };
+
+  const handleSwitchSelectedPlayerTeam = () => {
+    if (!selectedPlayer) {
+      return;
+    }
+
+    commitBoardState({
+      ...boardState,
+      players: boardState.players.map((player) =>
+        player.id === selectedPlayer.id
+          ? { ...player, team: player.team === 'home' ? 'away' : 'home' }
+          : player
+      ),
+    });
+    setPlacementTeam(selectedPlayer.team === 'home' ? 'away' : 'home');
+  };
+
+  const handleRemoveSelectedPlayer = () => {
+    if (!selectedPlayer) {
+      return;
+    }
+
+    commitBoardState({
+      ...boardState,
+      players: boardState.players.filter(
+        (player) => player.id !== selectedPlayer.id
+      ),
+    });
+    setSelectedPlayerId(null);
+    setShareStatus('Player removed');
   };
 
   return (
@@ -252,8 +314,14 @@ const App = () => {
         <section className="grid flex-1 gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
           <BoardControls
             currentFormation={currentFormation}
+            placementTeam={placementTeam}
+            selectedPlayer={selectedPlayer}
             toolMode={toolMode}
+            onAddPlayer={handleAddPlayer}
             onFormationChange={handleFormationChange}
+            onPlacementTeamChange={setPlacementTeam}
+            onRemoveSelectedPlayer={handleRemoveSelectedPlayer}
+            onSwitchSelectedPlayerTeam={handleSwitchSelectedPlayerTeam}
             onToolChange={(tool) => {
               setToolMode(tool);
               setPendingPoint(null);
@@ -261,17 +329,22 @@ const App = () => {
             onClearArrows={() =>
               commitBoardState({ ...boardState, arrows: [] })
             }
-            onResetBoard={() => commitBoardState(defaultBoardState(currentFormation))}
+            onResetBoard={() =>
+              commitBoardState(defaultBoardState(currentFormation))
+            }
           />
 
           <PitchBoard
             boardState={boardState}
             pendingPoint={pendingPoint}
             pitchRef={pitchRef}
+            selectedPlayerId={selectedPlayerId}
             toolMode={toolMode}
             onPitchPointerDown={handlePitchPointerDown}
             onPlayerPointerDown={(playerId, event) => {
+              setSelectedPlayerId(playerId);
               if (toolMode !== 'select') {
+                event.stopPropagation();
                 return;
               }
 
@@ -293,7 +366,29 @@ const App = () => {
   );
 };
 
-const createArrow = (toolMode: Extract<ToolMode, 'straight' | 'curve'>, start: Point, end: Point): Arrow => {
+const createBenchPlayer = (team: TeamSide, players: BoardState['players']) => {
+  const teamPlayers = players.filter((player) => player.team === team);
+  const highestNumber = teamPlayers.reduce(
+    (maxNumber, player) => Math.max(maxNumber, player.number),
+    0
+  );
+  const nextIndex = teamPlayers.length + 1;
+
+  return {
+    id: `player-${team}-${Date.now()}`,
+    label: team === 'home' ? `SUB ${nextIndex}` : `OPP ${nextIndex}`,
+    number: highestNumber + 1,
+    team,
+    x: team === 'home' ? 50 : 50,
+    y: team === 'home' ? 68 : 32,
+  };
+};
+
+const createArrow = (
+  toolMode: Extract<ToolMode, 'straight' | 'curve'>,
+  start: Point,
+  end: Point
+): Arrow => {
   const midPoint = {
     x: (start.x + end.x) / 2,
     y: (start.y + end.y) / 2,

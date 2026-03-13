@@ -1,5 +1,6 @@
 export type ToolMode = 'select' | 'straight' | 'curve' | 'erase';
 export type FormationKey = '4-3-3' | '4-2-3-1' | '4-4-2';
+export type TeamSide = 'home' | 'away';
 
 export type Player = {
   id: string;
@@ -7,7 +8,7 @@ export type Player = {
   number: number;
   x: number;
   y: number;
-  team: 'home' | 'away';
+  team: TeamSide;
 };
 
 export type Point = {
