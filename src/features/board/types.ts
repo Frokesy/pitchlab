@@ -20,6 +20,7 @@ export type Arrow = {
   id: string;
   type: 'straight' | 'curve';
   color: string;
+  strokeWidth?: number;
   start: Point;
   end: Point;
   control?: Point;

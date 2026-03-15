@@ -66,3 +66,16 @@ export const toolOptions: Array<{ value: ToolMode; label: string; description: s
     description: 'Click near an arrow to remove it from the board.',
   },
 ];
+
+export const annotationColorOptions = [
+  { value: '#22FF88', label: 'Run', hint: 'Primary movements' },
+  { value: '#3DA9FC', label: 'Pass', hint: 'Passing patterns' },
+  { value: '#FFB020', label: 'Press', hint: 'Pressing cues' },
+  { value: '#FF6B6B', label: 'Alert', hint: 'Critical triggers' },
+] as const;
+
+export const annotationThicknessOptions = [
+  { value: 0.5, label: 'Thin' },
+  { value: 0.8, label: 'Medium' },
+  { value: 1.15, label: 'Bold' },
+] as const;

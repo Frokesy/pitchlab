@@ -66,7 +66,7 @@ const PitchBoard = ({
               d={`M ${arrow.start.x} ${arrow.start.y} Q ${arrow.control.x} ${arrow.control.y} ${arrow.end.x} ${arrow.end.y}`}
               fill="none"
               stroke={arrow.color}
-              strokeWidth="0.75"
+              strokeWidth={arrow.strokeWidth ?? 0.75}
               strokeLinecap="round"
               markerEnd={arrow.color === '#3DA9FC' ? 'url(#arrowhead-blue)' : 'url(#arrowhead-green)'}
             />
@@ -78,7 +78,7 @@ const PitchBoard = ({
               x2={arrow.end.x}
               y2={arrow.end.y}
               stroke={arrow.color}
-              strokeWidth="0.75"
+              strokeWidth={arrow.strokeWidth ?? 0.75}
               strokeLinecap="round"
               markerEnd={arrow.color === '#3DA9FC' ? 'url(#arrowhead-blue)' : 'url(#arrowhead-green)'}
             />

@@ -48,6 +48,8 @@ const App = () => {
   const [historyFuture, setHistoryFuture] = useState<BoardState[]>([]);
   const [placementTeam, setPlacementTeam] = useState<TeamSide>('away');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [annotationColor, setAnnotationColor] = useState('#22FF88');
+  const [annotationThickness, setAnnotationThickness] = useState(0.8);
   const pitchRef = useRef<HTMLDivElement | null>(null);
   const boardStateRef = useRef(boardState);
   const dragOriginRef = useRef<BoardState | null>(null);
@@ -177,7 +179,13 @@ const App = () => {
       return;
     }
 
-    const nextArrow = createArrow(toolMode, pendingPoint, point);
+    const nextArrow = createArrow(
+      toolMode,
+      pendingPoint,
+      point,
+      annotationColor,
+      annotationThickness
+    );
     commitBoardState({
       ...boardState,
       arrows: [...boardState.arrows, nextArrow],
@@ -313,11 +321,15 @@ const App = () => {
 
         <section className="grid flex-1 gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
           <BoardControls
+            annotationColor={annotationColor}
+            annotationThickness={annotationThickness}
             currentFormation={currentFormation}
             placementTeam={placementTeam}
             selectedPlayer={selectedPlayer}
             toolMode={toolMode}
             onAddPlayer={handleAddPlayer}
+            onAnnotationColorChange={setAnnotationColor}
+            onAnnotationThicknessChange={setAnnotationThickness}
             onFormationChange={handleFormationChange}
             onPlacementTeamChange={setPlacementTeam}
             onRemoveSelectedPlayer={handleRemoveSelectedPlayer}
@@ -387,7 +399,9 @@ const createBenchPlayer = (team: TeamSide, players: BoardState['players']) => {
 const createArrow = (
   toolMode: Extract<ToolMode, 'straight' | 'curve'>,
   start: Point,
-  end: Point
+  end: Point,
+  color: string,
+  strokeWidth: number
 ): Arrow => {
   const midPoint = {
     x: (start.x + end.x) / 2,
@@ -397,7 +411,8 @@ const createArrow = (
   return {
     id: `arrow-${Date.now()}`,
     type: toolMode,
-    color: toolMode === 'curve' ? '#3DA9FC' : '#22FF88',
+    color,
+    strokeWidth,
     start,
     end,
     control:

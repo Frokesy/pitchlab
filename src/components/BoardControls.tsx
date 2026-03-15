@@ -1,12 +1,21 @@
-import { formationTemplates, toolOptions } from '../features/board/data';
+import {
+  annotationColorOptions,
+  annotationThicknessOptions,
+  formationTemplates,
+  toolOptions,
+} from '../features/board/data';
 import type { FormationKey, Player, TeamSide, ToolMode } from '../features/board/types';
 
 type BoardControlsProps = {
+  annotationColor: string;
+  annotationThickness: number;
   currentFormation: FormationKey;
   placementTeam: TeamSide;
   selectedPlayer: Player | null;
   toolMode: ToolMode;
   onAddPlayer: () => void;
+  onAnnotationColorChange: (color: string) => void;
+  onAnnotationThicknessChange: (thickness: number) => void;
   onFormationChange: (formation: FormationKey) => void;
   onPlacementTeamChange: (team: TeamSide) => void;
   onRemoveSelectedPlayer: () => void;
@@ -17,11 +26,15 @@ type BoardControlsProps = {
 };
 
 const BoardControls = ({
+  annotationColor,
+  annotationThickness,
   currentFormation,
   placementTeam,
   selectedPlayer,
   toolMode,
   onAddPlayer,
+  onAnnotationColorChange,
+  onAnnotationThicknessChange,
   onFormationChange,
   onPlacementTeamChange,
   onRemoveSelectedPlayer,
@@ -113,6 +126,47 @@ const BoardControls = ({
           {selectedPlayer
             ? `${selectedPlayer.label} #${selectedPlayer.number} is selected. Drag to reposition or move between teams.`
             : 'Select a player on the board to switch teams or remove them.'}
+        </p>
+      </div>
+
+      <div>
+        <p className="pitchlab-section-label">Annotations</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {annotationColorOptions.map((option) => (
+            <button
+              key={option.value}
+              className={`annotation-swatch ${
+                annotationColor === option.value ? 'annotation-swatch--active' : ''
+              }`}
+              onClick={() => onAnnotationColorChange(option.value)}
+              title={`${option.label}: ${option.hint}`}
+              aria-label={`${option.label} annotation color`}
+            >
+              <span
+                className="annotation-swatch__dot"
+                style={{ backgroundColor: option.value }}
+              />
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {annotationThicknessOptions.map((option) => (
+            <button
+              key={option.label}
+              className={`pitchlab-tool ${
+                annotationThickness === option.value ? 'pitchlab-tool--active' : ''
+              }`}
+              onClick={() => onAnnotationThicknessChange(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+          Use color and line weight to separate runs, passes, and pressing cues.
         </p>
       </div>
 
