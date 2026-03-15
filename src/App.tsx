@@ -21,9 +21,9 @@ import type {
   FormationKey,
   Point,
   SavedPlay,
+  TeamSide,
   ToolMode,
 } from './features/board/types';
-type TeamSide = 'home' | 'away';
 
 const App = () => {
   const initialSharedState = useMemo(() => {
@@ -43,6 +43,7 @@ const App = () => {
     loadSavedPlays()
   );
   const [shareStatus, setShareStatus] = useState('');
+  const [activePlayId, setActivePlayId] = useState<string | null>(null);
   const [draggingPlayerId, setDraggingPlayerId] = useState<string | null>(null);
   const [historyPast, setHistoryPast] = useState<BoardState[]>([]);
   const [historyFuture, setHistoryFuture] = useState<BoardState[]>([]);
@@ -199,21 +200,38 @@ const App = () => {
       return;
     }
 
+    const playId = activePlayId ?? `play-${Date.now()}`;
     const nextPlay: SavedPlay = {
-      id: `play-${Date.now()}`,
+      id: playId,
       name,
       savedAt: new Date().toISOString(),
       state: boardState,
     };
-    const nextPlays = [nextPlay, ...savedPlays].slice(0, 8);
+    const filteredPlays = savedPlays.filter((play) => play.id !== playId);
+    const nextPlays = [nextPlay, ...filteredPlays].slice(0, 8);
     setSavedPlays(nextPlays);
     persistSavedPlays(nextPlays);
-    setShareStatus('Play saved');
+    setActivePlayId(playId);
+    setShareStatus(activePlayId ? 'Play updated' : 'Play saved');
   };
 
   const handleLoadPlay = (play: SavedPlay) => {
     commitBoardState(play.state);
     setPlayName(play.name);
+    setActivePlayId(play.id);
+    setShareStatus('Play loaded');
+  };
+
+  const handleDeletePlay = (play: SavedPlay) => {
+    const nextPlays = savedPlays.filter((entry) => entry.id !== play.id);
+    setSavedPlays(nextPlays);
+    persistSavedPlays(nextPlays);
+
+    if (activePlayId === play.id) {
+      setActivePlayId(null);
+    }
+
+    setShareStatus('Play deleted');
   };
 
   const handleShare = async () => {
@@ -366,12 +384,14 @@ const App = () => {
             }}
           />
 
-          <PlaySidebar
-            activeShareLink={activeShareLink}
-            savedPlays={savedPlays}
-            shareStatus={shareStatus}
-            onLoadPlay={handleLoadPlay}
-          />
+        <PlaySidebar
+          activePlayId={activePlayId}
+          activeShareLink={activeShareLink}
+          savedPlays={savedPlays}
+          shareStatus={shareStatus}
+          onDeletePlay={handleDeletePlay}
+          onLoadPlay={handleLoadPlay}
+        />
         </section>
       </div>
     </main>
