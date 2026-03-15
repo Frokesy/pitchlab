@@ -5,9 +5,11 @@ type AppHeaderProps = {
   canRedo: boolean;
   canUndo: boolean;
   playName: string;
+  saveLabel: string;
   shareStatus: string;
   onRedo: () => void;
   onPlayNameChange: (value: string) => void;
+  onSaveAndNewBoard: () => void;
   onSavePlay: () => void;
   onShare: () => void;
   onUndo: () => void;
@@ -18,9 +20,11 @@ const AppHeader = ({
   canRedo,
   canUndo,
   playName,
+  saveLabel,
   shareStatus,
   onRedo,
   onPlayNameChange,
+  onSaveAndNewBoard,
   onSavePlay,
   onShare,
   onUndo,
@@ -70,15 +74,35 @@ const AppHeader = ({
         />
       </label>
 
-      <div className="pitchlab-header__buttons">
-        <button className="pitchlab-button pitchlab-button--ghost" onClick={onUndo} disabled={!canUndo}>
-          Undo
+      <div className="pitchlab-header__action-row">
+        <div className="pitchlab-header__history">
+          <button
+            className="pitchlab-header__history-button"
+            onClick={onUndo}
+            disabled={!canUndo}
+          >
+            Undo
+          </button>
+          <button
+            className="pitchlab-header__history-button"
+            onClick={onRedo}
+            disabled={!canRedo}
+          >
+            Redo
+          </button>
+        </div>
+
+        <button className="pitchlab-button pitchlab-header__primary" onClick={onSavePlay}>
+          {saveLabel}
         </button>
-        <button className="pitchlab-button pitchlab-button--ghost" onClick={onRedo} disabled={!canRedo}>
-          Redo
-        </button>
-        <button className="pitchlab-button" onClick={onSavePlay}>
-          Save play
+      </div>
+
+      <div className="pitchlab-header__secondary">
+        <button
+          className="pitchlab-button pitchlab-button--ghost"
+          onClick={onSaveAndNewBoard}
+        >
+          Save + new board
         </button>
         <button className="pitchlab-button pitchlab-button--ghost" onClick={onShare}>
           Copy share link

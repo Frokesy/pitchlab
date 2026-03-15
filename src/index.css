@@ -177,7 +177,49 @@ button {
   gap: 0.5rem;
 }
 
-.pitchlab-header__buttons {
+.pitchlab-header__action-row {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.pitchlab-header__history {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.pitchlab-header__history-button {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.pitchlab-header__history-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.11);
+  color: var(--text);
+}
+
+.pitchlab-header__history-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.pitchlab-header__primary {
+  min-height: 52px;
+}
+
+.pitchlab-header__secondary {
   display: grid;
   gap: 0.75rem;
 }
@@ -557,7 +599,12 @@ button {
     width: min(100%, 440px);
   }
 
-  .pitchlab-header__buttons {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .pitchlab-header__action-row {
+    grid-template-columns: minmax(150px, 180px) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .pitchlab-header__secondary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -26,25 +26,33 @@ import type {
 } from './features/board/types';
 
 const PLAYER_DRAG_THRESHOLD = 6;
+const SHARED_PLAY_HASH_PREFIX = '#play=';
 
 const App = () => {
+  const initialHash = window.location.hash;
   const initialSharedState = useMemo(() => {
-    const shareValue = window.location.hash.startsWith('#play=')
-      ? window.location.hash.slice(6)
+    const shareValue = initialHash.startsWith(SHARED_PLAY_HASH_PREFIX)
+      ? initialHash.slice(SHARED_PLAY_HASH_PREFIX.length)
       : '';
     return shareValue ? decodeBoardState(shareValue) : null;
-  }, []);
+  }, [initialHash]);
+  const hadInvalidSharedState =
+    initialHash.startsWith(SHARED_PLAY_HASH_PREFIX) && !initialSharedState;
 
   const [boardState, setBoardState] = useState<BoardState>(
     initialSharedState ?? defaultBoardState('4-3-3')
   );
   const [toolMode, setToolMode] = useState<ToolMode>('select');
   const [pendingPoint, setPendingPoint] = useState<Point | null>(null);
-  const [playName, setPlayName] = useState('Wing overload');
+  const [playName, setPlayName] = useState(
+    initialSharedState ? 'Shared board' : 'Wing overload'
+  );
   const [savedPlays, setSavedPlays] = useState<SavedPlay[]>(() =>
     loadSavedPlays()
   );
-  const [shareStatus, setShareStatus] = useState('');
+  const [shareStatus, setShareStatus] = useState(
+    hadInvalidSharedState ? 'Shared link was invalid' : ''
+  );
   const [activePlayId, setActivePlayId] = useState<string | null>(null);
   const [draggingPlayerId, setDraggingPlayerId] = useState<string | null>(null);
   const [historyPast, setHistoryPast] = useState<BoardState[]>([]);
@@ -76,13 +84,87 @@ const App = () => {
   const currentFormation = boardState.formation;
   const canUndo = historyPast.length > 0;
   const canRedo = historyFuture.length > 0;
+  const saveLabel = activePlayId ? 'Update play' : 'Save play';
   const selectedPlayer =
     boardState.players.find((player) => player.id === selectedPlayerId) ?? null;
 
   const activeShareLink = useMemo(() => {
     const encoded = encodeBoardState(boardState);
-    return `${window.location.origin}${window.location.pathname}#play=${encoded}`;
+    return `${window.location.origin}${window.location.pathname}${window.location.search}${SHARED_PLAY_HASH_PREFIX}${encoded}`;
   }, [boardState]);
+
+  const clearSharedHash = () => {
+    window.history.replaceState(
+      {},
+      '',
+      `${window.location.pathname}${window.location.search}`
+    );
+  };
+
+  const applyExternalBoardState = (
+    nextState: BoardState,
+    options?: {
+      playId?: string | null;
+      playName?: string;
+      status?: string;
+    }
+  ) => {
+    setBoardState(nextState);
+    setPendingPoint(null);
+    setHistoryPast([]);
+    setHistoryFuture([]);
+    setDraggingPlayerId(null);
+    setSelectedPlayerId(null);
+    dragOriginRef.current = null;
+    dragPointerIdRef.current = null;
+    dragStartClientRef.current = null;
+    didDragPlayerRef.current = false;
+
+    if (options?.playName) {
+      setPlayName(options.playName);
+    }
+
+    setActivePlayId(options?.playId ?? null);
+
+    if (options?.status) {
+      setShareStatus(options.status);
+    }
+  };
+
+  useEffect(() => {
+    if (!hadInvalidSharedState) {
+      return;
+    }
+
+    clearSharedHash();
+  }, [hadInvalidSharedState]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (!hash.startsWith(SHARED_PLAY_HASH_PREFIX)) {
+        return;
+      }
+
+      const decodedState = decodeBoardState(
+        hash.slice(SHARED_PLAY_HASH_PREFIX.length)
+      );
+
+      if (!decodedState) {
+        clearSharedHash();
+        setShareStatus('Shared link was invalid');
+        return;
+      }
+
+      applyExternalBoardState(decodedState, {
+        playName: 'Shared board',
+        status: 'Shared board loaded',
+      });
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const commitBoardState = (nextState: BoardState) => {
     const currentState = boardStateRef.current;
@@ -231,10 +313,14 @@ const App = () => {
   };
 
   const handleSavePlay = () => {
+    return persistCurrentPlay();
+  };
+
+  const persistCurrentPlay = () => {
     const name = playName.trim();
     if (!name) {
       setShareStatus('Name the play first');
-      return;
+      return null;
     }
 
     const playId = activePlayId ?? `play-${Date.now()}`;
@@ -250,13 +336,15 @@ const App = () => {
     persistSavedPlays(nextPlays);
     setActivePlayId(playId);
     setShareStatus(activePlayId ? 'Play updated' : 'Play saved');
+    return playId;
   };
 
   const handleLoadPlay = (play: SavedPlay) => {
-    commitBoardState(play.state);
-    setPlayName(play.name);
-    setActivePlayId(play.id);
-    setShareStatus('Play loaded');
+    applyExternalBoardState(play.state, {
+      playId: play.id,
+      playName: play.name,
+      status: 'Play loaded',
+    });
   };
 
   const handleDeletePlay = (play: SavedPlay) => {
@@ -266,6 +354,7 @@ const App = () => {
 
     if (activePlayId === play.id) {
       setActivePlayId(null);
+      setPlayName('Untitled play');
     }
 
     setShareStatus('Play deleted');
@@ -275,7 +364,7 @@ const App = () => {
     window.history.replaceState(
       {},
       '',
-      `#play=${encodeBoardState(boardState)}`
+      `${window.location.pathname}${window.location.search}${SHARED_PLAY_HASH_PREFIX}${encodeBoardState(boardState)}`
     );
 
     try {
@@ -284,6 +373,20 @@ const App = () => {
     } catch {
       setShareStatus('Share link ready in URL');
     }
+  };
+
+  const handleSaveAndNewBoard = () => {
+    const savedPlayId = persistCurrentPlay();
+    if (!savedPlayId) {
+      return;
+    }
+
+    applyExternalBoardState(defaultBoardState(currentFormation), {
+      playId: null,
+      playName: 'Untitled play',
+      status: 'Saved. New board ready',
+    });
+    clearSharedHash();
   };
 
   const handleUndo = () => {
@@ -366,9 +469,11 @@ const App = () => {
           canRedo={canRedo}
           canUndo={canUndo}
           playName={playName}
+          saveLabel={saveLabel}
           shareStatus={shareStatus}
           onRedo={handleRedo}
           onPlayNameChange={setPlayName}
+          onSaveAndNewBoard={handleSaveAndNewBoard}
           onSavePlay={handleSavePlay}
           onShare={handleShare}
           onUndo={handleUndo}
@@ -426,15 +531,14 @@ const App = () => {
               setDraggingPlayerId(playerId);
             }}
           />
-
-        <PlaySidebar
-          activePlayId={activePlayId}
-          activeShareLink={activeShareLink}
-          savedPlays={savedPlays}
-          shareStatus={shareStatus}
-          onDeletePlay={handleDeletePlay}
-          onLoadPlay={handleLoadPlay}
-        />
+          <PlaySidebar
+            activePlayId={activePlayId}
+            activeShareLink={activeShareLink}
+            savedPlays={savedPlays}
+            shareStatus={shareStatus}
+            onDeletePlay={handleDeletePlay}
+            onLoadPlay={handleLoadPlay}
+          />
         </section>
       </div>
     </main>
