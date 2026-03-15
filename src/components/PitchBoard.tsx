@@ -1,5 +1,6 @@
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
 
+import { annotationColorOptions } from '../features/board/data';
 import type { BoardState, Point, ToolMode } from '../features/board/types';
 
 type PitchBoardProps = {
@@ -28,14 +29,30 @@ const PitchBoard = ({
         <p className="mt-1 text-sm text-[var(--muted)]">
           {pendingPoint
             ? 'Select the second point to finish the annotation.'
-            : 'Primary team in green. Markups layer over live player positions.'}
+            : 'Clear team markers and tactical layers, tuned for quick scanning.'}
         </p>
       </div>
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
-        <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--accent)]" />
-        Home
-        <span className="ml-3 inline-flex h-2.5 w-2.5 rounded-full bg-[var(--accent-alt)]" />
-        Opponent
+      <div className="board-legend">
+        <span className="board-legend__team board-legend__team--home">
+          <span className="board-legend__dot" />
+          Home
+        </span>
+        <span className="board-legend__team board-legend__team--away">
+          <span className="board-legend__dot" />
+          Opponent
+        </span>
+        {annotationColorOptions.map((option) => (
+          <span key={option.value} className="board-legend__annotation">
+            <span
+              className="board-legend__line"
+              style={{
+                backgroundColor: option.value,
+                maskImage: getAnnotationLegendMask(option.value),
+              }}
+            />
+            {option.label}
+          </span>
+        ))}
       </div>
     </div>
 
@@ -68,6 +85,7 @@ const PitchBoard = ({
               stroke={arrow.color}
               strokeWidth={arrow.strokeWidth ?? 0.75}
               strokeLinecap="round"
+              strokeDasharray={getArrowDashPattern(arrow.color)}
               markerEnd={arrow.color === '#3DA9FC' ? 'url(#arrowhead-blue)' : 'url(#arrowhead-green)'}
             />
           ) : (
@@ -80,6 +98,7 @@ const PitchBoard = ({
               stroke={arrow.color}
               strokeWidth={arrow.strokeWidth ?? 0.75}
               strokeLinecap="round"
+              strokeDasharray={getArrowDashPattern(arrow.color)}
               markerEnd={arrow.color === '#3DA9FC' ? 'url(#arrowhead-blue)' : 'url(#arrowhead-green)'}
             />
           ),
@@ -105,12 +124,36 @@ const PitchBoard = ({
           onPointerDown={(event) => onPlayerPointerDown(player.id, event)}
         >
           <span className="player-token__number">{player.number}</span>
-          <span className="player-token__label">{player.label}</span>
+          <span className="player-token__label-badge">{player.label}</span>
         </button>
       ))}
     </div>
   </section>
 );
+
+const getArrowDashPattern = (color: string) => {
+  if (color === '#FFB020') {
+    return '2.4 1.4';
+  }
+
+  if (color === '#FF6B6B') {
+    return '1.2 1';
+  }
+
+  return undefined;
+};
+
+const getAnnotationLegendMask = (color: string) => {
+  if (color === '#FFB020') {
+    return 'repeating-linear-gradient(90deg, #000 0 10px, transparent 10px 16px)';
+  }
+
+  if (color === '#FF6B6B') {
+    return 'repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 10px)';
+  }
+
+  return 'linear-gradient(90deg, #000 0 100%)';
+};
 
 const PitchMarkings = () => (
   <>
