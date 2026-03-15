@@ -30,6 +30,7 @@ import {
   loadWorkspaceState,
   persistSavedPlays,
   persistWorkspaceState,
+  rotateBoardOrientation,
 } from './utils';
 
 type ExternalBoardOptions = {
@@ -124,6 +125,7 @@ export const usePitchLabApp = () => {
   ]);
 
   const currentFormation = boardState.formation;
+  const currentOrientation = boardState.orientation;
   const canUndo = historyPast.length > 0;
   const canRedo = historyFuture.length > 0;
   const activePlay = savedPlays.find((play) => play.id === activePlayId) ?? null;
@@ -335,13 +337,19 @@ export const usePitchLabApp = () => {
       return;
     }
 
-    applyExternalBoardState(defaultBoardState(currentFormation), {
+    applyExternalBoardState(defaultBoardState(currentFormation, currentOrientation), {
       playId: null,
       playName: EMPTY_PLAY_NAME,
       status: 'Saved. New board ready',
     });
     clearSharedHash();
-  }, [applyExternalBoardState, clearSharedHash, currentFormation, persistCurrentPlay]);
+  }, [
+    applyExternalBoardState,
+    clearSharedHash,
+    currentFormation,
+    currentOrientation,
+    persistCurrentPlay,
+  ]);
 
   const handleShare = useCallback(async () => {
     window.history.replaceState(
@@ -471,9 +479,9 @@ export const usePitchLabApp = () => {
   }, [closeMobileControls]);
 
   const handleFormationSelect = useCallback((formation: FormationKey) => {
-    commitBoardState(defaultBoardState(formation));
+    commitBoardState(defaultBoardState(formation, currentOrientation));
     closeMobileControls();
-  }, [closeMobileControls, commitBoardState]);
+  }, [closeMobileControls, commitBoardState, currentOrientation]);
 
   const handleClearArrows = useCallback(() => {
     commitBoardState({ ...boardState, arrows: [] });
@@ -481,9 +489,15 @@ export const usePitchLabApp = () => {
   }, [boardState, closeMobileControls, commitBoardState]);
 
   const handleResetBoard = useCallback(() => {
-    commitBoardState(defaultBoardState(currentFormation));
+    commitBoardState(defaultBoardState(currentFormation, currentOrientation));
     closeMobileControls();
-  }, [closeMobileControls, commitBoardState, currentFormation]);
+  }, [closeMobileControls, commitBoardState, currentFormation, currentOrientation]);
+
+  const handleToggleOrientation = useCallback(() => {
+    const nextOrientation =
+      currentOrientation === 'portrait' ? 'landscape' : 'portrait';
+    commitBoardState(rotateBoardOrientation(boardState, nextOrientation));
+  }, [boardState, commitBoardState, currentOrientation]);
 
   const handleAddPlayerFromControls = useCallback(() => {
     handleAddPlayer();
@@ -553,6 +567,7 @@ export const usePitchLabApp = () => {
     handleSaveAndNewBoard,
     handleSavePlay,
     handleShare,
+    handleToggleOrientation,
     handleToggleFocusDrawer,
     handleToggleFocusMode,
     handleUndo,
@@ -568,5 +583,6 @@ export const usePitchLabApp = () => {
     setPlayName,
     shareStatus,
     closeMobileControls,
+    currentOrientation,
   };
 };

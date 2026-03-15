@@ -3,6 +3,7 @@ import type {
   BoardState,
   FormationKey,
   Point,
+  PitchOrientation,
   SavedPlay,
   TeamSide,
 } from './types';
@@ -18,10 +19,23 @@ export const createPlayersFromFormation = (formation: FormationKey) =>
     id: `player-${formation}-${index + 1}`,
   }));
 
-export const defaultBoardState = (formation: FormationKey): BoardState => ({
+export const defaultBoardState = (
+  formation: FormationKey,
+  orientation: PitchOrientation = 'portrait',
+): BoardState => ({
   formation,
+  orientation,
   players: createPlayersFromFormation(formation),
   arrows: [],
+});
+
+const normalizeBoardState = (state: BoardState | Omit<BoardState, 'orientation'>) => ({
+  ...state,
+  orientation:
+    'orientation' in state &&
+    (state.orientation === 'portrait' || state.orientation === 'landscape')
+      ? state.orientation
+      : 'portrait',
 });
 
 export const encodeBoardState = (state: BoardState) => {
@@ -36,7 +50,7 @@ export const decodeBoardState = (value: string): BoardState | null => {
     if (!parsed || !Array.isArray(parsed.players) || !Array.isArray(parsed.arrows)) {
       return null;
     }
-    return parsed;
+    return normalizeBoardState(parsed);
   } catch {
     return null;
   }
@@ -49,7 +63,12 @@ export const loadSavedPlays = (): SavedPlay[] => {
       return [];
     }
     const parsed = JSON.parse(raw) as SavedPlay[];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.map((play) => ({
+          ...play,
+          state: normalizeBoardState(play.state),
+        }))
+      : [];
   } catch {
     return [];
   }
@@ -94,7 +113,10 @@ export const loadWorkspaceState = (): PersistedWorkspace | null => {
       return null;
     }
 
-    return parsed;
+    return {
+      ...parsed,
+      boardState: normalizeBoardState(parsed.boardState),
+    };
   } catch {
     return null;
   }
@@ -128,3 +150,42 @@ export const distanceToSegment = (point: Point, start: Point, end: Point) => {
 
 export const isSameBoardState = (left: BoardState, right: BoardState) =>
   JSON.stringify(left) === JSON.stringify(right);
+
+const rotatePointClockwise = (point: Point): Point => ({
+  x: 100 - point.y,
+  y: point.x,
+});
+
+const rotatePointCounterClockwise = (point: Point): Point => ({
+  x: point.y,
+  y: 100 - point.x,
+});
+
+export const rotateBoardOrientation = (
+  boardState: BoardState,
+  nextOrientation: PitchOrientation,
+): BoardState => {
+  if (boardState.orientation === nextOrientation) {
+    return boardState;
+  }
+
+  const rotatePoint =
+    nextOrientation === 'landscape'
+      ? rotatePointClockwise
+      : rotatePointCounterClockwise;
+
+  return {
+    ...boardState,
+    orientation: nextOrientation,
+    players: boardState.players.map((player) => ({
+      ...player,
+      ...rotatePoint(player),
+    })),
+    arrows: boardState.arrows.map((arrow) => ({
+      ...arrow,
+      start: rotatePoint(arrow.start),
+      end: rotatePoint(arrow.end),
+      control: arrow.control ? rotatePoint(arrow.control) : undefined,
+    })),
+  };
+};

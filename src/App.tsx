@@ -24,6 +24,7 @@ const App = () => {
     handleSaveAndNewBoard,
     handleSavePlay,
     handleShare,
+    handleToggleOrientation,
     handleToggleFocusDrawer,
     handleToggleFocusMode,
     handleUndo,
@@ -51,6 +52,7 @@ const App = () => {
           playName={playName}
           saveLabel={saveLabel}
           shareStatus={shareStatus}
+          onToggleOrientation={handleToggleOrientation}
           onToggleFocusMode={handleToggleFocusMode}
           onRedo={handleRedo}
           onPlayNameChange={setPlayName}

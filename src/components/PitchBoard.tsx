@@ -1,7 +1,12 @@
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react';
 
 import { annotationColorOptions } from '../features/board/data';
-import type { BoardState, Point, ToolMode } from '../features/board/types';
+import type {
+  BoardState,
+  PitchOrientation,
+  Point,
+  ToolMode,
+} from '../features/board/types';
 
 type PitchBoardProps = {
   boardState: BoardState;
@@ -64,10 +69,10 @@ const PitchBoard = ({
 
     <div
       ref={pitchRef}
-      className="pitch relative flex-1 overflow-hidden rounded-[28px]"
+      className={`pitch pitch--${boardState.orientation} relative flex-1 overflow-hidden rounded-[28px]`}
       onPointerDown={onPitchPointerDown}
     >
-      <PitchMarkings />
+      <PitchMarkings orientation={boardState.orientation} />
 
       <svg
         className="pointer-events-none absolute inset-0 h-full w-full"
@@ -161,22 +166,56 @@ const getAnnotationLegendMask = (color: string) => {
   return 'linear-gradient(90deg, #000 0 100%)';
 };
 
-const PitchMarkings = () => (
+const PitchMarkings = ({ orientation }: { orientation: PitchOrientation }) =>
+  orientation === 'landscape' ? <LandscapeMarkings /> : <PortraitMarkings />;
+
+const PortraitMarkings = () => (
   <>
+    <div className="pitch-sheen absolute inset-0" />
+    <div className="pitch-shadow absolute inset-0" />
     <div className="absolute inset-[2.5%] rounded-[24px] border border-white/70" />
     <div className="absolute left-1/2 top-[2.5%] h-[95%] w-px -translate-x-1/2 bg-white/70" />
     <div className="absolute left-1/2 top-1/2 h-[18%] w-[18%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/70" />
     <div className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />
     <div className="absolute left-1/2 top-[14%] h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />
     <div className="absolute left-1/2 top-[86%] h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />
-    <div className="absolute left-1/2 top-[2.5%] h-[16%] w-[36%] -translate-x-1/2 rounded-b-[18px] border border-t-0 border-white/70" />
+    <div className="absolute left-1/2 top-[2.5%] h-[16%] w-[36%] -translate-x-1/2 rounded-b-[18px] border border-t-0 border-white/70 bg-white/[0.02]" />
     <div className="absolute left-1/2 top-[2.5%] h-[7%] w-[16%] -translate-x-1/2 rounded-b-[12px] border border-t-0 border-white/70" />
-    <div className="absolute left-1/2 bottom-[2.5%] h-[16%] w-[36%] -translate-x-1/2 rounded-t-[18px] border border-b-0 border-white/70" />
+    <div className="absolute left-1/2 bottom-[2.5%] h-[16%] w-[36%] -translate-x-1/2 rounded-t-[18px] border border-b-0 border-white/70 bg-white/[0.02]" />
     <div className="absolute left-1/2 bottom-[2.5%] h-[7%] w-[16%] -translate-x-1/2 rounded-t-[12px] border border-b-0 border-white/70" />
     <div className="absolute left-1/2 top-[2.5%] h-[2.6%] w-[10%] -translate-x-1/2 border-x border-b border-white/70" />
     <div className="absolute left-1/2 bottom-[2.5%] h-[2.6%] w-[10%] -translate-x-1/2 border-x border-t border-white/70" />
     <div className="absolute left-[2.5%] top-[43.5%] h-[13%] w-[6%] rounded-r-full border border-l-0 border-white/70" />
     <div className="absolute right-[2.5%] top-[43.5%] h-[13%] w-[6%] rounded-l-full border border-r-0 border-white/70" />
+    <div className="absolute left-[2.5%] top-[2.5%] h-[5%] w-[5%] rounded-br-full border-b border-r border-white/55" />
+    <div className="absolute right-[2.5%] top-[2.5%] h-[5%] w-[5%] rounded-bl-full border-b border-l border-white/55" />
+    <div className="absolute left-[2.5%] bottom-[2.5%] h-[5%] w-[5%] rounded-tr-full border-r border-t border-white/55" />
+    <div className="absolute right-[2.5%] bottom-[2.5%] h-[5%] w-[5%] rounded-tl-full border-l border-t border-white/55" />
+  </>
+);
+
+const LandscapeMarkings = () => (
+  <>
+    <div className="pitch-sheen absolute inset-0" />
+    <div className="pitch-shadow absolute inset-0" />
+    <div className="absolute inset-[2.5%] rounded-[24px] border border-white/70" />
+    <div className="absolute left-[2.5%] top-1/2 h-px w-[95%] -translate-y-1/2 bg-white/70" />
+    <div className="absolute left-1/2 top-1/2 h-[18%] w-[18%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/70" />
+    <div className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />
+    <div className="absolute left-[14%] top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />
+    <div className="absolute left-[86%] top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80" />
+    <div className="absolute left-[2.5%] top-1/2 h-[36%] w-[16%] -translate-y-1/2 rounded-r-[18px] border border-l-0 border-white/70 bg-white/[0.02]" />
+    <div className="absolute left-[2.5%] top-1/2 h-[16%] w-[7%] -translate-y-1/2 rounded-r-[12px] border border-l-0 border-white/70" />
+    <div className="absolute right-[2.5%] top-1/2 h-[36%] w-[16%] -translate-y-1/2 rounded-l-[18px] border border-r-0 border-white/70 bg-white/[0.02]" />
+    <div className="absolute right-[2.5%] top-1/2 h-[16%] w-[7%] -translate-y-1/2 rounded-l-[12px] border border-r-0 border-white/70" />
+    <div className="absolute left-[2.5%] top-1/2 h-[10%] w-[2.6%] -translate-y-1/2 border-y border-r border-white/70" />
+    <div className="absolute right-[2.5%] top-1/2 h-[10%] w-[2.6%] -translate-y-1/2 border-y border-l border-white/70" />
+    <div className="absolute left-[43.5%] top-[2.5%] h-[6%] w-[13%] rounded-b-full border border-t-0 border-white/70" />
+    <div className="absolute left-[43.5%] bottom-[2.5%] h-[6%] w-[13%] rounded-t-full border border-b-0 border-white/70" />
+    <div className="absolute left-[2.5%] top-[2.5%] h-[5%] w-[5%] rounded-br-full border-b border-r border-white/55" />
+    <div className="absolute right-[2.5%] top-[2.5%] h-[5%] w-[5%] rounded-bl-full border-b border-l border-white/55" />
+    <div className="absolute left-[2.5%] bottom-[2.5%] h-[5%] w-[5%] rounded-tr-full border-r border-t border-white/55" />
+    <div className="absolute right-[2.5%] bottom-[2.5%] h-[5%] w-[5%] rounded-tl-full border-l border-t border-white/55" />
   </>
 );
 

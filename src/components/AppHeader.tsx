@@ -10,6 +10,7 @@ type AppHeaderProps = {
   playName: string;
   saveLabel: string;
   shareStatus: string;
+  onToggleOrientation: () => void;
   onToggleFocusMode: () => void;
   onRedo: () => void;
   onPlayNameChange: (value: string) => void;
@@ -27,6 +28,7 @@ const AppHeader = ({
   playName,
   saveLabel,
   shareStatus,
+  onToggleOrientation,
   onToggleFocusMode,
   onRedo,
   onPlayNameChange,
@@ -165,6 +167,12 @@ const AppHeader = ({
           </div>
 
           <div className="pitchlab-header__secondary">
+            <button
+              className="pitchlab-button pitchlab-button--ghost"
+              onClick={onToggleOrientation}
+            >
+              {boardState.orientation === 'portrait' ? 'Landscape view' : 'Portrait view'}
+            </button>
             <button
               className="pitchlab-button pitchlab-button--ghost pitchlab-header__focus-toggle"
               onClick={onToggleFocusMode}
