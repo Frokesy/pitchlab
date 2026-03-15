@@ -77,10 +77,34 @@ button {
 }
 
 .pitchlab-header__bar {
-  display: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
 }
 
 .pitchlab-header__content {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: grid;
+  gap: 0;
+  pointer-events: none;
+  transition:
+    max-height 220ms ease,
+    opacity 180ms ease,
+    margin-top 220ms ease;
+}
+
+.pitchlab-header__content--expanded {
+  max-height: 1100px;
+  opacity: 1;
+  gap: 1rem;
+  margin-top: 0.9rem;
+  pointer-events: auto;
+}
+
+.pitchlab-header__summary {
   display: grid;
   gap: 1rem;
 }
@@ -243,6 +267,10 @@ button {
   gap: 0.75rem;
 }
 
+.pitchlab-header__focus-toggle {
+  display: inline-flex;
+}
+
 .pitchlab-header__bar-copy {
   display: grid;
   gap: 0.45rem;
@@ -262,10 +290,6 @@ button {
   font-size: 0.76rem;
   line-height: 1.4;
   color: var(--muted);
-}
-
-.pitchlab-header__accordion {
-  display: none;
 }
 
 .pitchlab-header__accordion-icon {
@@ -297,6 +321,23 @@ button {
 .pitchlab-header__accordion-icon--open span:last-child {
   transform: translate(-50%, -50%) rotate(0deg);
   opacity: 0;
+}
+
+.pitchlab-header__accordion {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0 0.78rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text);
 }
 
 .pitchlab-button:disabled {
@@ -364,6 +405,127 @@ button {
 .pitchlab-mobile-drawer__panel {
   max-height: min(72vh, 720px);
   overflow: auto;
+}
+
+.pitchlab-board--focus {
+  padding: 0.9rem;
+}
+
+.pitchlab-header--focus {
+  gap: 0.75rem;
+  padding: 0.8rem 0.95rem;
+}
+
+.pitchlab-header--focus .pitchlab-header__title {
+  font-size: clamp(1.15rem, 1.65vw, 1.5rem);
+}
+
+.pitchlab-header--focus .pitchlab-header__copy {
+  display: none;
+}
+
+.pitchlab-header--focus .pitchlab-header__content--expanded {
+  margin-top: 0.65rem;
+}
+
+.pitchlab-header--focus .pitchlab-header__brand-logo {
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 12px;
+}
+
+.pitchlab-focus-sidebar {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 0fr);
+  min-height: 100%;
+  overflow: hidden;
+  transition: grid-template-columns 200ms ease;
+}
+
+.pitchlab-focus-sidebar--expanded {
+  grid-template-columns: 72px minmax(0, 320px);
+}
+
+.pitchlab-focus-sidebar__rail {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    rgba(12, 17, 23, 0.82);
+  padding: 0.9rem 0.6rem;
+}
+
+.pitchlab-focus-sidebar__drawer {
+  overflow: hidden;
+  padding-left: 0.75rem;
+}
+
+.pitchlab-focus-sidebar__drawer .pitchlab-panel {
+  min-height: 100%;
+}
+
+.pitchlab-focus-sidebar__stack {
+  display: grid;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.pitchlab-focus-sidebar__divider {
+  width: 32px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pitchlab-focus-sidebar__spacer {
+  flex: 1;
+}
+
+.pitchlab-focus-sidebar__icon-button {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.pitchlab-focus-sidebar__icon-button:hover {
+  transform: translateY(-1px);
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pitchlab-focus-sidebar__icon-button--active {
+  border-color: rgba(34, 255, 136, 0.35);
+  background: rgba(34, 255, 136, 0.1);
+  color: var(--accent);
+}
+
+.pitchlab-focus-sidebar__icon-button svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pitchlab-focus-sidebar__icon-button span {
+  display: none;
 }
 
 .pitchlab-chip {
@@ -743,54 +905,10 @@ button {
     padding: 0.9rem;
   }
 
-  .pitchlab-header__bar {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.9rem;
-  }
-
   .pitchlab-header__brand-logo {
     width: 2.2rem;
     height: 2.2rem;
     border-radius: 12px;
-  }
-
-  .pitchlab-header__accordion {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    min-height: 38px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 0 0.78rem;
-    font-size: 0.64rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text);
-  }
-
-  .pitchlab-header__content {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    gap: 0;
-    pointer-events: none;
-    transition:
-      max-height 220ms ease,
-      opacity 180ms ease,
-      margin-top 220ms ease;
-  }
-
-  .pitchlab-header__content--expanded {
-    max-height: 900px;
-    opacity: 1;
-    gap: 1rem;
-    margin-top: 0.9rem;
-    pointer-events: auto;
   }
 
   .pitchlab-mobile-toggle {
@@ -875,13 +993,6 @@ button {
 }
 
 @media (min-width: 768px) and (max-width: 1279px) {
-  .pitchlab-header__content {
-    max-height: none;
-    opacity: 1;
-    overflow: visible;
-    pointer-events: auto;
-  }
-
   .pitchlab-header__actions {
     width: 100%;
   }
@@ -898,14 +1009,22 @@ button {
 
 @media (min-width: 1024px) {
   .pitchlab-header {
-    grid-template-columns: minmax(0, 1.15fr) minmax(420px, 0.95fr);
-    align-items: end;
     padding: 1rem 1.15rem;
   }
 
+  .pitchlab-header__content {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 1.25rem;
+  }
+
+  .pitchlab-header__summary {
+    min-width: 0;
+  }
+
   .pitchlab-header__actions {
-    justify-self: end;
-    width: min(100%, 440px);
+    justify-self: stretch;
+    width: 100%;
   }
 
   .pitchlab-header__action-row {

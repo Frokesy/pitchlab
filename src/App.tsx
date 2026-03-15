@@ -1,5 +1,6 @@
 import AppHeader from './components/AppHeader';
 import BoardControls from './components/BoardControls';
+import FocusModeSidebar from './components/FocusModeSidebar';
 import MobileControlsDrawer from './components/MobileControlsDrawer';
 import PitchBoard from './components/PitchBoard';
 import PlaySidebar from './components/PlaySidebar';
@@ -23,7 +24,11 @@ const App = () => {
     handleSaveAndNewBoard,
     handleSavePlay,
     handleShare,
+    handleToggleFocusDrawer,
+    handleToggleFocusMode,
     handleUndo,
+    isFocusDrawerExpanded,
+    isFocusMode,
     isMobileControlsOpen,
     pendingPoint,
     pitchRef,
@@ -42,9 +47,11 @@ const App = () => {
           boardState={boardState}
           canRedo={canRedo}
           canUndo={canUndo}
+          isFocusMode={isFocusMode}
           playName={playName}
           saveLabel={saveLabel}
           shareStatus={shareStatus}
+          onToggleFocusMode={handleToggleFocusMode}
           onRedo={handleRedo}
           onPlayNameChange={setPlayName}
           onSaveAndNewBoard={handleSaveAndNewBoard}
@@ -53,12 +60,34 @@ const App = () => {
           onUndo={handleUndo}
         />
 
-        <section className="grid flex-1 gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-          <div className="order-2 hidden md:block xl:order-1">
-            <BoardControls {...boardControlsProps} />
+        <section
+          className={`grid flex-1 gap-6 ${
+            isFocusMode
+              ? 'md:grid-cols-[minmax(72px,auto)_minmax(0,1fr)]'
+              : 'xl:grid-cols-[280px_minmax(0,1fr)_320px]'
+          }`}
+        >
+          <div
+            className={`order-2 hidden md:block ${
+              isFocusMode ? 'md:order-1' : 'xl:order-1'
+            }`}
+          >
+            {isFocusMode ? (
+              <FocusModeSidebar
+                {...boardControlsProps}
+                isExpanded={isFocusDrawerExpanded}
+                onAddPlayer={boardControlsProps.onAddPlayer}
+                onClearArrows={boardControlsProps.onClearArrows}
+                onExitFocusMode={handleToggleFocusMode}
+                onResetBoard={boardControlsProps.onResetBoard}
+                onToggleExpanded={handleToggleFocusDrawer}
+              />
+            ) : (
+              <BoardControls {...boardControlsProps} />
+            )}
           </div>
 
-          <div className="order-1 relative xl:order-2">
+          <div className={`order-1 relative ${isFocusMode ? 'md:order-2' : 'xl:order-2'}`}>
             <button
               className="pitchlab-mobile-toggle md:hidden"
               onClick={handleMobileControlsOpen}
@@ -83,6 +112,7 @@ const App = () => {
 
             <PitchBoard
               boardState={boardState}
+              isFocusMode={isFocusMode}
               pendingPoint={pendingPoint}
               pitchRef={pitchRef}
               selectedPlayerId={selectedPlayerId}
@@ -92,16 +122,18 @@ const App = () => {
             />
           </div>
 
-          <div className="order-3 xl:order-3">
-            <PlaySidebar
-              activePlayId={activePlayId}
-              activeShareLink={activeShareLink}
-              savedPlays={savedPlays}
-              shareStatus={shareStatus}
-              onDeletePlay={handleDeletePlay}
-              onLoadPlay={handleLoadPlay}
-            />
-          </div>
+          {isFocusMode ? null : (
+            <div className="order-3 xl:order-3">
+              <PlaySidebar
+                activePlayId={activePlayId}
+                activeShareLink={activeShareLink}
+                savedPlays={savedPlays}
+                shareStatus={shareStatus}
+                onDeletePlay={handleDeletePlay}
+                onLoadPlay={handleLoadPlay}
+              />
+            </div>
+          )}
         </section>
       </div>
     </main>

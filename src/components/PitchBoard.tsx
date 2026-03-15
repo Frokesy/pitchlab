@@ -5,6 +5,7 @@ import type { BoardState, Point, ToolMode } from '../features/board/types';
 
 type PitchBoardProps = {
   boardState: BoardState;
+  isFocusMode?: boolean;
   pendingPoint: Point | null;
   pitchRef: RefObject<HTMLDivElement | null>;
   selectedPlayerId: string | null;
@@ -15,6 +16,7 @@ type PitchBoardProps = {
 
 const PitchBoard = ({
   boardState,
+  isFocusMode = false,
   pendingPoint,
   pitchRef,
   selectedPlayerId,
@@ -22,7 +24,11 @@ const PitchBoard = ({
   onPitchPointerDown,
   onPlayerPointerDown,
 }: PitchBoardProps) => (
-  <section className="pitchlab-panel flex min-h-[720px] flex-col overflow-hidden px-3 py-3 sm:min-h-[780px] sm:px-4 sm:py-4 lg:min-h-[860px]">
+  <section
+    className={`pitchlab-panel flex min-h-[720px] flex-col overflow-hidden px-3 py-3 sm:min-h-[780px] sm:px-4 sm:py-4 lg:min-h-[860px] ${
+      isFocusMode ? 'pitchlab-board--focus lg:min-h-[calc(100vh-12rem)]' : ''
+    }`}
+  >
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div>
         <p className="pitchlab-section-label">Board</p>

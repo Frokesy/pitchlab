@@ -86,6 +86,8 @@ export const usePitchLabApp = () => {
   const [annotationThickness, setAnnotationThickness] = useState(
     initialWorkspaceState?.annotationThickness ?? 0.8,
   );
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isFocusDrawerExpanded, setIsFocusDrawerExpanded] = useState(false);
 
   const pitchRef = useRef<HTMLDivElement | null>(null);
   const boardStateRef = useRef(boardState);
@@ -256,6 +258,20 @@ export const usePitchLabApp = () => {
 
   const closeMobileControls = useCallback(() => {
     setIsMobileControlsOpen(false);
+  }, []);
+
+  const handleToggleFocusMode = useCallback(() => {
+    setIsFocusMode((current) => {
+      if (current) {
+        setIsFocusDrawerExpanded(false);
+      }
+
+      return !current;
+    });
+  }, []);
+
+  const handleToggleFocusDrawer = useCallback(() => {
+    setIsFocusDrawerExpanded((current) => !current);
   }, []);
 
   const handlePitchPointerDown = useCallback((
@@ -537,7 +553,11 @@ export const usePitchLabApp = () => {
     handleSaveAndNewBoard,
     handleSavePlay,
     handleShare,
+    handleToggleFocusDrawer,
+    handleToggleFocusMode,
     handleUndo,
+    isFocusDrawerExpanded,
+    isFocusMode,
     isMobileControlsOpen,
     pendingPoint,
     pitchRef,
