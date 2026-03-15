@@ -12,7 +12,9 @@ import {
   distanceToSegment,
   encodeBoardState,
   loadSavedPlays,
+  loadWorkspaceState,
   persistSavedPlays,
+  persistWorkspaceState,
   clamp,
   isSameBoardState,
 } from './features/board/utils';
@@ -28,8 +30,12 @@ import type {
 
 const PLAYER_DRAG_THRESHOLD = 6;
 const SHARED_PLAY_HASH_PREFIX = '#play=';
+const DEFAULT_PLAY_NAME = 'Wing overload';
+const EMPTY_PLAY_NAME = 'Untitled play';
 
 const App = () => {
+  const initialSavedPlays = loadSavedPlays();
+  const initialWorkspaceState = loadWorkspaceState();
   const initialHash = window.location.hash;
   const initialSharedState = useMemo(() => {
     const shareValue = initialHash.startsWith(SHARED_PLAY_HASH_PREFIX)
@@ -39,30 +45,43 @@ const App = () => {
   }, [initialHash]);
   const hadInvalidSharedState =
     initialHash.startsWith(SHARED_PLAY_HASH_PREFIX) && !initialSharedState;
+  const initialActivePlayId =
+    initialWorkspaceState?.activePlayId &&
+    initialSavedPlays.some((play) => play.id === initialWorkspaceState.activePlayId)
+      ? initialWorkspaceState.activePlayId
+      : null;
+  const initialBoardState =
+    initialSharedState ??
+    initialWorkspaceState?.boardState ??
+    defaultBoardState('4-3-3');
 
-  const [boardState, setBoardState] = useState<BoardState>(
-    initialSharedState ?? defaultBoardState('4-3-3')
-  );
+  const [boardState, setBoardState] = useState<BoardState>(initialBoardState);
   const [toolMode, setToolMode] = useState<ToolMode>('select');
   const [pendingPoint, setPendingPoint] = useState<Point | null>(null);
   const [playName, setPlayName] = useState(
-    initialSharedState ? 'Shared board' : 'Wing overload'
+    initialSharedState
+      ? 'Shared board'
+      : initialWorkspaceState?.playName || DEFAULT_PLAY_NAME
   );
-  const [savedPlays, setSavedPlays] = useState<SavedPlay[]>(() =>
-    loadSavedPlays()
-  );
+  const [savedPlays, setSavedPlays] = useState<SavedPlay[]>(initialSavedPlays);
   const [shareStatus, setShareStatus] = useState(
     hadInvalidSharedState ? 'Shared link was invalid' : ''
   );
-  const [activePlayId, setActivePlayId] = useState<string | null>(null);
+  const [activePlayId, setActivePlayId] = useState<string | null>(initialActivePlayId);
   const [draggingPlayerId, setDraggingPlayerId] = useState<string | null>(null);
   const [historyPast, setHistoryPast] = useState<BoardState[]>([]);
   const [historyFuture, setHistoryFuture] = useState<BoardState[]>([]);
   const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false);
-  const [placementTeam, setPlacementTeam] = useState<TeamSide>('away');
+  const [placementTeam, setPlacementTeam] = useState<TeamSide>(
+    initialWorkspaceState?.placementTeam ?? 'away'
+  );
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
-  const [annotationColor, setAnnotationColor] = useState('#22FF88');
-  const [annotationThickness, setAnnotationThickness] = useState(0.8);
+  const [annotationColor, setAnnotationColor] = useState(
+    initialWorkspaceState?.annotationColor ?? '#22FF88'
+  );
+  const [annotationThickness, setAnnotationThickness] = useState(
+    initialWorkspaceState?.annotationThickness ?? 0.8
+  );
   const pitchRef = useRef<HTMLDivElement | null>(null);
   const boardStateRef = useRef(boardState);
   const dragOriginRef = useRef<BoardState | null>(null);
@@ -83,10 +102,37 @@ const App = () => {
     return () => window.clearTimeout(timeout);
   }, [shareStatus]);
 
+  useEffect(() => {
+    persistWorkspaceState({
+      activePlayId,
+      annotationColor,
+      annotationThickness,
+      boardState,
+      placementTeam,
+      playName,
+    });
+  }, [
+    activePlayId,
+    annotationColor,
+    annotationThickness,
+    boardState,
+    placementTeam,
+    playName,
+  ]);
+
   const currentFormation = boardState.formation;
   const canUndo = historyPast.length > 0;
   const canRedo = historyFuture.length > 0;
-  const saveLabel = activePlayId ? 'Update play' : 'Save play';
+  const activePlay =
+    savedPlays.find((play) => play.id === activePlayId) ?? null;
+  const isActivePlayDirty = activePlay
+    ? activePlay.name !== playName || !isSameBoardState(activePlay.state, boardState)
+    : false;
+  const saveLabel = activePlayId
+    ? isActivePlayDirty
+      ? 'Update play'
+      : 'Saved'
+    : 'Save play';
   const selectedPlayer =
     boardState.players.find((player) => player.id === selectedPlayerId) ?? null;
 
@@ -116,6 +162,7 @@ const App = () => {
     setHistoryPast([]);
     setHistoryFuture([]);
     setDraggingPlayerId(null);
+    setIsMobileControlsOpen(false);
     setSelectedPlayerId(null);
     dragOriginRef.current = null;
     dragPointerIdRef.current = null;
@@ -356,7 +403,8 @@ const App = () => {
 
     if (activePlayId === play.id) {
       setActivePlayId(null);
-      setPlayName('Untitled play');
+      setShareStatus('Play deleted. Current board kept as draft');
+      return;
     }
 
     setShareStatus('Play deleted');
@@ -385,7 +433,7 @@ const App = () => {
 
     applyExternalBoardState(defaultBoardState(currentFormation), {
       playId: null,
-      playName: 'Untitled play',
+      playName: EMPTY_PLAY_NAME,
       status: 'Saved. New board ready',
     });
     clearSharedHash();
@@ -403,6 +451,7 @@ const App = () => {
     );
     setBoardState(previousState);
     setPendingPoint(null);
+    setSelectedPlayerId(null);
   };
 
   const handleRedo = () => {
@@ -418,6 +467,7 @@ const App = () => {
     ]);
     setBoardState(nextState);
     setPendingPoint(null);
+    setSelectedPlayerId(null);
   };
 
   const handleAddPlayer = () => {
@@ -537,7 +587,7 @@ const App = () => {
         />
 
         <section className="grid flex-1 gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-          <div className="order-2 hidden xl:order-1 xl:block">
+          <div className="order-2 hidden md:block xl:order-1">
             <BoardControls
               annotationColor={annotationColor}
               annotationThickness={annotationThickness}
@@ -560,7 +610,7 @@ const App = () => {
 
           <div className="order-1 relative xl:order-2">
             <button
-              className="pitchlab-mobile-toggle xl:hidden"
+              className="pitchlab-mobile-toggle md:hidden"
               onClick={() => setIsMobileControlsOpen((open) => !open)}
               aria-expanded={isMobileControlsOpen}
               aria-label={isMobileControlsOpen ? 'Close controls' : 'Open controls'}
@@ -580,7 +630,7 @@ const App = () => {
                 <>
                   <motion.button
                     key="mobile-controls-backdrop"
-                    className="pitchlab-mobile-backdrop xl:hidden"
+                    className="pitchlab-mobile-backdrop md:hidden"
                     aria-label="Close controls"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -590,7 +640,7 @@ const App = () => {
                   />
                   <motion.div
                     key="mobile-controls-drawer"
-                    className="pitchlab-mobile-drawer xl:hidden"
+                    className="pitchlab-mobile-drawer md:hidden"
                     initial={{ opacity: 0, y: -18, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -14, scale: 0.985 }}

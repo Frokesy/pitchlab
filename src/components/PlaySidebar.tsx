@@ -50,7 +50,7 @@ const PlaySidebar = ({
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-sm text-[var(--muted)]">
-            Saved plays will appear here after the first board save.
+            Save a board and it will show up here for quick recall.
           </div>
         )}
       </div>
@@ -59,7 +59,7 @@ const PlaySidebar = ({
     <div className="rounded-2xl border border-white/8 bg-[var(--panel-strong)] p-4">
       <p className="pitchlab-section-label">Share link</p>
       <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-        Copy a shareable board link and send it directly to players or staff.
+        Copy a live board link and send it straight to players or staff.
       </p>
       <textarea className="pitchlab-textarea mt-4" readOnly value={activeShareLink} />
       <p className="mt-3 text-sm font-medium text-[var(--accent)]">{shareStatus || 'Ready'}</p>

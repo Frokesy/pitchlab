@@ -56,7 +56,7 @@ button {
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     var(--panel);
   box-shadow:
-    0 24px 80px rgba(0, 0, 0, 0.35),
+    0 18px 54px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(18px);
   border-radius: 28px;
@@ -74,6 +74,15 @@ button {
   box-shadow:
     0 18px 60px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.pitchlab-header__bar {
+  display: none;
+}
+
+.pitchlab-header__content {
+  display: grid;
+  gap: 1rem;
 }
 
 .pitchlab-header__intro {
@@ -161,6 +170,13 @@ button {
 
 .pitchlab-header__status {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(34, 255, 136, 0.14);
+  border-radius: 999px;
+  background: rgba(34, 255, 136, 0.08);
+  padding: 0 0.75rem;
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--accent);
@@ -222,6 +238,62 @@ button {
 .pitchlab-header__secondary {
   display: grid;
   gap: 0.75rem;
+}
+
+.pitchlab-header__bar-copy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.pitchlab-header__bar-title {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.pitchlab-header__bar-subtitle {
+  margin: 0.12rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.pitchlab-header__accordion {
+  display: none;
+}
+
+.pitchlab-header__accordion-icon {
+  position: relative;
+  display: inline-flex;
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.pitchlab-header__accordion-icon span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.58rem;
+  height: 1.5px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.pitchlab-header__accordion-icon span:first-child {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.pitchlab-header__accordion-icon span:last-child {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.pitchlab-header__accordion-icon--open span:last-child {
+  transform: translate(-50%, -50%) rotate(0deg);
+  opacity: 0;
 }
 
 .pitchlab-button:disabled {
@@ -385,6 +457,11 @@ button {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.pitchlab-input::placeholder,
+.pitchlab-textarea::placeholder {
+  color: rgba(149, 163, 184, 0.72);
+}
+
 .pitchlab-textarea {
   min-height: 8rem;
   resize: none;
@@ -412,6 +489,9 @@ button {
   padding: 0 1rem;
   background: var(--accent);
   color: #042111;
+  box-shadow:
+    0 10px 24px rgba(34, 255, 136, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .pitchlab-button:hover,
@@ -421,9 +501,15 @@ button {
 
 .pitchlab-button--ghost,
 .pitchlab-tool {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.035);
   color: var(--text);
   border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+.pitchlab-button--ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .pitchlab-tool--active {
@@ -600,6 +686,7 @@ button {
 .saved-play--active {
   border-color: rgba(34, 255, 136, 0.35);
   background: rgba(34, 255, 136, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(34, 255, 136, 0.08);
 }
 
 .saved-play__main {
@@ -653,6 +740,50 @@ button {
     padding: 0.9rem;
   }
 
+  .pitchlab-header__bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.9rem;
+  }
+
+  .pitchlab-header__accordion {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0 0.78rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .pitchlab-header__content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    gap: 0;
+    pointer-events: none;
+    transition:
+      max-height 220ms ease,
+      opacity 180ms ease,
+      margin-top 220ms ease;
+  }
+
+  .pitchlab-header__content--expanded {
+    max-height: 900px;
+    opacity: 1;
+    gap: 1rem;
+    margin-top: 0.9rem;
+    pointer-events: auto;
+  }
+
   .pitchlab-mobile-toggle {
     top: 0.75rem;
     right: 0.75rem;
@@ -676,6 +807,14 @@ button {
 
   .pitchlab-header__copy {
     max-width: none;
+  }
+
+  .pitchlab-header__intro {
+    gap: 0.55rem;
+  }
+
+  .pitchlab-header__title {
+    font-size: 1.4rem;
   }
 
   .pitchlab-header__action-row,
@@ -727,6 +866,13 @@ button {
 }
 
 @media (min-width: 768px) and (max-width: 1279px) {
+  .pitchlab-header__content {
+    max-height: none;
+    opacity: 1;
+    overflow: visible;
+    pointer-events: auto;
+  }
+
   .pitchlab-header__actions {
     width: 100%;
   }

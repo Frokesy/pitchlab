@@ -126,8 +126,8 @@ const BoardControls = ({
 
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
           {selectedPlayer
-            ? `${selectedPlayer.label} #${selectedPlayer.number} is selected. Drag to reposition or move between teams.`
-            : 'Select a player on the board to switch teams or remove them.'}
+            ? `${selectedPlayer.label} #${selectedPlayer.number} is selected. Drag it on the pitch or switch sides from here.`
+            : 'Select a player on the board to move it between teams or remove it.'}
         </p>
       </div>
 
@@ -168,7 +168,7 @@ const BoardControls = ({
         </div>
 
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-          Use color and line weight to separate runs, passes, and pressing cues.
+          Use color and line weight to separate runs, passes, and pressing cues clearly.
         </p>
       </div>
 
@@ -176,10 +176,10 @@ const BoardControls = ({
         <p className="pitchlab-section-label">Quick actions</p>
         <div className="mt-3 grid gap-2">
           <button className="pitchlab-button pitchlab-button--ghost" onClick={onClearArrows}>
-            Clear arrows
+            Clear all lines
           </button>
           <button className="pitchlab-button pitchlab-button--ghost" onClick={onResetBoard}>
-            Reset formation
+            Reload base shape
           </button>
         </div>
       </div>

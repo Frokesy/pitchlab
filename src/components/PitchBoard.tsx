@@ -29,7 +29,7 @@ const PitchBoard = ({
         <p className="mt-1 text-sm text-[var(--muted)]">
           {pendingPoint
             ? 'Select the second point to finish the annotation.'
-            : 'Clear team markers and tactical layers, tuned for quick scanning.'}
+            : 'Team markers and tactical layers are tuned for quick, match-style scanning.'}
         </p>
       </div>
       <div className="board-legend">

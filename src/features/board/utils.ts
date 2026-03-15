@@ -1,5 +1,13 @@
 import { STORAGE_KEY, formationTemplates } from './data';
-import type { BoardState, FormationKey, Point, SavedPlay } from './types';
+import type {
+  BoardState,
+  FormationKey,
+  Point,
+  SavedPlay,
+  TeamSide,
+} from './types';
+
+const WORKSPACE_STORAGE_KEY = 'pitchlab.mvp.workspace';
 
 export const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
@@ -49,6 +57,51 @@ export const loadSavedPlays = (): SavedPlay[] => {
 
 export const persistSavedPlays = (plays: SavedPlay[]) => {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(plays));
+};
+
+type PersistedWorkspace = {
+  activePlayId: string | null;
+  annotationColor: string;
+  annotationThickness: number;
+  boardState: BoardState;
+  placementTeam: TeamSide;
+  playName: string;
+};
+
+export const loadWorkspaceState = (): PersistedWorkspace | null => {
+  try {
+    const raw = window.localStorage.getItem(WORKSPACE_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as PersistedWorkspace;
+    if (
+      !parsed ||
+      typeof parsed.playName !== 'string' ||
+      typeof parsed.annotationColor !== 'string' ||
+      typeof parsed.annotationThickness !== 'number' ||
+      (parsed.placementTeam !== 'home' && parsed.placementTeam !== 'away')
+    ) {
+      return null;
+    }
+
+    if (
+      !parsed.boardState ||
+      !Array.isArray(parsed.boardState.players) ||
+      !Array.isArray(parsed.boardState.arrows)
+    ) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+export const persistWorkspaceState = (workspace: PersistedWorkspace) => {
+  window.localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(workspace));
 };
 
 export const distanceToSegment = (point: Point, start: Point, end: Point) => {
