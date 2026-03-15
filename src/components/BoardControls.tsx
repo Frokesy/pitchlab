@@ -6,7 +6,7 @@ import {
 } from '../features/board/data';
 import type { FormationKey, Player, TeamSide, ToolMode } from '../features/board/types';
 
-type BoardControlsProps = {
+export type BoardControlsProps = {
   annotationColor: string;
   annotationThickness: number;
   className?: string;

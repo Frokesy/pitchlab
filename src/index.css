@@ -96,12 +96,15 @@ button {
   gap: 0.65rem;
 }
 
-.pitchlab-header__brand-mark {
-  width: 0.72rem;
-  height: 0.72rem;
-  border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%, #7dffc1, var(--accent));
-  box-shadow: 0 0 0 4px rgba(34, 255, 136, 0.1);
+.pitchlab-header__brand-logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .pitchlab-header__brand-text {
@@ -745,6 +748,12 @@ button {
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.9rem;
+  }
+
+  .pitchlab-header__brand-logo {
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 12px;
   }
 
   .pitchlab-header__accordion {

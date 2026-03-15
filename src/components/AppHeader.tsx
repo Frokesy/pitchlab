@@ -39,7 +39,11 @@ const AppHeader = ({
       <div className="pitchlab-header__bar">
         <div className="pitchlab-header__bar-copy">
           <div className="pitchlab-header__brand">
-            <span className="pitchlab-header__brand-mark" />
+            <img
+              className="pitchlab-header__brand-logo"
+              src="/assets/logo.png"
+              alt="PitchLab"
+            />
             <span className="pitchlab-header__brand-text">PitchLab</span>
           </div>
           <div>
@@ -78,7 +82,11 @@ const AppHeader = ({
       >
         <div className="pitchlab-header__intro">
           <div className="pitchlab-header__brand">
-            <span className="pitchlab-header__brand-mark" />
+            <img
+              className="pitchlab-header__brand-logo"
+              src="/assets/logo.png"
+              alt="PitchLab"
+            />
             <span className="pitchlab-header__brand-text">PitchLab</span>
           </div>
           <div>
