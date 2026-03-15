@@ -25,6 +25,8 @@ import type {
   ToolMode,
 } from './features/board/types';
 
+const PLAYER_DRAG_THRESHOLD = 6;
+
 const App = () => {
   const initialSharedState = useMemo(() => {
     const shareValue = window.location.hash.startsWith('#play=')
@@ -54,6 +56,9 @@ const App = () => {
   const pitchRef = useRef<HTMLDivElement | null>(null);
   const boardStateRef = useRef(boardState);
   const dragOriginRef = useRef<BoardState | null>(null);
+  const dragPointerIdRef = useRef<number | null>(null);
+  const dragStartClientRef = useRef<Point | null>(null);
+  const didDragPlayerRef = useRef(false);
 
   useEffect(() => {
     boardStateRef.current = boardState;
@@ -114,9 +119,30 @@ const App = () => {
     }
 
     const handlePointerMove = (event: PointerEvent) => {
+      if (
+        dragPointerIdRef.current !== null &&
+        event.pointerId !== dragPointerIdRef.current
+      ) {
+        return;
+      }
+
       const point = getRelativePoint(event.clientX, event.clientY);
       if (!point) {
         return;
+      }
+
+      const dragStartClient = dragStartClientRef.current;
+      if (dragStartClient && !didDragPlayerRef.current) {
+        const distance = Math.hypot(
+          event.clientX - dragStartClient.x,
+          event.clientY - dragStartClient.y
+        );
+
+        if (distance < PLAYER_DRAG_THRESHOLD) {
+          return;
+        }
+
+        didDragPlayerRef.current = true;
       }
 
       setBoardState((current) => ({
@@ -131,12 +157,19 @@ const App = () => {
       const dragOrigin = dragOriginRef.current;
       const currentState = boardStateRef.current;
 
-      if (dragOrigin && !isSameBoardState(dragOrigin, currentState)) {
+      if (
+        didDragPlayerRef.current &&
+        dragOrigin &&
+        !isSameBoardState(dragOrigin, currentState)
+      ) {
         setHistoryPast((previous) => [...previous.slice(-49), dragOrigin]);
         setHistoryFuture([]);
       }
 
       dragOriginRef.current = null;
+      dragPointerIdRef.current = null;
+      dragStartClientRef.current = null;
+      didDragPlayerRef.current = false;
       setDraggingPlayerId(null);
     };
 
@@ -160,11 +193,15 @@ const App = () => {
     }
 
     if (toolMode === 'erase') {
+      const arrowToRemove = findArrowToRemove(point, boardState.arrows);
+      if (!arrowToRemove) {
+        return;
+      }
+      const arrowToRemoveId = arrowToRemove.id;
+
       commitBoardState({
         ...boardState,
-        arrows: boardState.arrows.filter((arrow) =>
-          shouldKeepArrow(point, arrow)
-        ),
+        arrows: boardState.arrows.filter((arrow) => arrow.id !== arrowToRemoveId),
       });
       return;
     }
@@ -380,6 +417,12 @@ const App = () => {
 
               event.stopPropagation();
               dragOriginRef.current = boardStateRef.current;
+              dragPointerIdRef.current = event.pointerId;
+              dragStartClientRef.current = {
+                x: event.clientX,
+                y: event.clientY,
+              };
+              didDragPlayerRef.current = false;
               setDraggingPlayerId(playerId);
             }}
           />
@@ -445,21 +488,32 @@ const createArrow = (
   };
 };
 
-const shouldKeepArrow = (point: Point, arrow: Arrow) => {
-  const threshold = arrow.type === 'curve' ? 7 : 5;
-  const control = arrow.control ?? {
-    x: (arrow.start.x + arrow.end.x) / 2,
-    y: (arrow.start.y + arrow.end.y) / 2,
-  };
+const findArrowToRemove = (point: Point, arrows: Arrow[]): Arrow | null => {
+  let closestArrow: Arrow | null = null;
+  let closestDistance = Number.POSITIVE_INFINITY;
 
-  if (arrow.type === 'curve') {
-    return (
-      distanceToSegment(point, arrow.start, control) > threshold &&
-      distanceToSegment(point, control, arrow.end) > threshold
-    );
-  }
+  arrows.forEach((arrow) => {
+    const threshold = arrow.type === 'curve' ? 7 : 5;
+    const control = arrow.control ?? {
+      x: (arrow.start.x + arrow.end.x) / 2,
+      y: (arrow.start.y + arrow.end.y) / 2,
+    };
 
-  return distanceToSegment(point, arrow.start, arrow.end) > threshold;
+    const distance =
+      arrow.type === 'curve'
+        ? Math.min(
+            distanceToSegment(point, arrow.start, control),
+            distanceToSegment(point, control, arrow.end)
+          )
+        : distanceToSegment(point, arrow.start, arrow.end);
+
+    if (distance <= threshold && distance < closestDistance) {
+      closestArrow = arrow;
+      closestDistance = distance;
+    }
+  });
+
+  return closestArrow;
 };
 
 export default App;
