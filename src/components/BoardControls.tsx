@@ -9,6 +9,7 @@ import type { FormationKey, Player, TeamSide, ToolMode } from '../features/board
 type BoardControlsProps = {
   annotationColor: string;
   annotationThickness: number;
+  className?: string;
   currentFormation: FormationKey;
   placementTeam: TeamSide;
   selectedPlayer: Player | null;
@@ -28,6 +29,7 @@ type BoardControlsProps = {
 const BoardControls = ({
   annotationColor,
   annotationThickness,
+  className,
   currentFormation,
   placementTeam,
   selectedPlayer,
@@ -46,7 +48,7 @@ const BoardControls = ({
   const activeTool = toolOptions.find((tool) => tool.value === toolMode);
 
   return (
-    <aside className="pitchlab-panel flex flex-col gap-6 px-4 py-5">
+    <aside className={`pitchlab-panel flex flex-col gap-6 px-4 py-5 ${className ?? ''}`}>
       <div>
         <p className="pitchlab-section-label">Tools</p>
         <div className="mt-3 grid grid-cols-2 gap-2">

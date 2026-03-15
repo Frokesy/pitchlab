@@ -22,7 +22,7 @@ const PitchBoard = ({
   onPitchPointerDown,
   onPlayerPointerDown,
 }: PitchBoardProps) => (
-  <section className="pitchlab-panel flex min-h-[720px] flex-col overflow-hidden px-4 py-4">
+  <section className="pitchlab-panel flex min-h-[720px] flex-col overflow-hidden px-3 py-3 sm:min-h-[780px] sm:px-4 sm:py-4 lg:min-h-[860px]">
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <div>
         <p className="pitchlab-section-label">Board</p>

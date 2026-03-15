@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import AppHeader from './components/AppHeader';
 import BoardControls from './components/BoardControls';
@@ -57,6 +58,7 @@ const App = () => {
   const [draggingPlayerId, setDraggingPlayerId] = useState<string | null>(null);
   const [historyPast, setHistoryPast] = useState<BoardState[]>([]);
   const [historyFuture, setHistoryFuture] = useState<BoardState[]>([]);
+  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(false);
   const [placementTeam, setPlacementTeam] = useState<TeamSide>('away');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [annotationColor, setAnnotationColor] = useState('#22FF88');
@@ -461,6 +463,61 @@ const App = () => {
     setShareStatus('Player removed');
   };
 
+  const closeMobileControls = () => {
+    setIsMobileControlsOpen(false);
+  };
+
+  const handleToolChange = (tool: ToolMode) => {
+    setToolMode(tool);
+    setPendingPoint(null);
+    closeMobileControls();
+  };
+
+  const handlePlacementTeamChange = (team: TeamSide) => {
+    setPlacementTeam(team);
+    closeMobileControls();
+  };
+
+  const handleAnnotationColorChange = (color: string) => {
+    setAnnotationColor(color);
+    closeMobileControls();
+  };
+
+  const handleAnnotationThicknessChange = (thickness: number) => {
+    setAnnotationThickness(thickness);
+    closeMobileControls();
+  };
+
+  const handleFormationSelect = (formation: FormationKey) => {
+    handleFormationChange(formation);
+    closeMobileControls();
+  };
+
+  const handleClearArrows = () => {
+    commitBoardState({ ...boardState, arrows: [] });
+    closeMobileControls();
+  };
+
+  const handleResetBoard = () => {
+    commitBoardState(defaultBoardState(currentFormation));
+    closeMobileControls();
+  };
+
+  const handleAddPlayerFromControls = () => {
+    handleAddPlayer();
+    closeMobileControls();
+  };
+
+  const handleSwitchSelectedPlayerTeamFromControls = () => {
+    handleSwitchSelectedPlayerTeam();
+    closeMobileControls();
+  };
+
+  const handleRemoveSelectedPlayerFromControls = () => {
+    handleRemoveSelectedPlayer();
+    closeMobileControls();
+  };
+
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col gap-6 px-4 py-4 lg:px-6">
@@ -480,65 +537,126 @@ const App = () => {
         />
 
         <section className="grid flex-1 gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-          <BoardControls
-            annotationColor={annotationColor}
-            annotationThickness={annotationThickness}
-            currentFormation={currentFormation}
-            placementTeam={placementTeam}
-            selectedPlayer={selectedPlayer}
-            toolMode={toolMode}
-            onAddPlayer={handleAddPlayer}
-            onAnnotationColorChange={setAnnotationColor}
-            onAnnotationThicknessChange={setAnnotationThickness}
-            onFormationChange={handleFormationChange}
-            onPlacementTeamChange={setPlacementTeam}
-            onRemoveSelectedPlayer={handleRemoveSelectedPlayer}
-            onSwitchSelectedPlayerTeam={handleSwitchSelectedPlayerTeam}
-            onToolChange={(tool) => {
-              setToolMode(tool);
-              setPendingPoint(null);
-            }}
-            onClearArrows={() =>
-              commitBoardState({ ...boardState, arrows: [] })
-            }
-            onResetBoard={() =>
-              commitBoardState(defaultBoardState(currentFormation))
-            }
-          />
+          <div className="order-2 hidden xl:order-1 xl:block">
+            <BoardControls
+              annotationColor={annotationColor}
+              annotationThickness={annotationThickness}
+              currentFormation={currentFormation}
+              placementTeam={placementTeam}
+              selectedPlayer={selectedPlayer}
+              toolMode={toolMode}
+              onAddPlayer={handleAddPlayerFromControls}
+              onAnnotationColorChange={handleAnnotationColorChange}
+              onAnnotationThicknessChange={handleAnnotationThicknessChange}
+              onFormationChange={handleFormationSelect}
+              onPlacementTeamChange={handlePlacementTeamChange}
+              onRemoveSelectedPlayer={handleRemoveSelectedPlayerFromControls}
+              onSwitchSelectedPlayerTeam={handleSwitchSelectedPlayerTeamFromControls}
+              onToolChange={handleToolChange}
+              onClearArrows={handleClearArrows}
+              onResetBoard={handleResetBoard}
+            />
+          </div>
 
-          <PitchBoard
-            boardState={boardState}
-            pendingPoint={pendingPoint}
-            pitchRef={pitchRef}
-            selectedPlayerId={selectedPlayerId}
-            toolMode={toolMode}
-            onPitchPointerDown={handlePitchPointerDown}
-            onPlayerPointerDown={(playerId, event) => {
-              setSelectedPlayerId(playerId);
-              if (toolMode !== 'select') {
+          <div className="order-1 relative xl:order-2">
+            <button
+              className="pitchlab-mobile-toggle xl:hidden"
+              onClick={() => setIsMobileControlsOpen((open) => !open)}
+              aria-expanded={isMobileControlsOpen}
+              aria-label={isMobileControlsOpen ? 'Close controls' : 'Open controls'}
+            >
+              <span className="pitchlab-mobile-toggle__icon" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+              <span className="pitchlab-mobile-toggle__label">
+                {isMobileControlsOpen ? 'Close' : 'Controls'}
+              </span>
+            </button>
+
+            <AnimatePresence>
+              {isMobileControlsOpen ? (
+                <>
+                  <motion.button
+                    key="mobile-controls-backdrop"
+                    className="pitchlab-mobile-backdrop xl:hidden"
+                    aria-label="Close controls"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                    onClick={closeMobileControls}
+                  />
+                  <motion.div
+                    key="mobile-controls-drawer"
+                    className="pitchlab-mobile-drawer xl:hidden"
+                    initial={{ opacity: 0, y: -18, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -14, scale: 0.985 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <BoardControls
+                      annotationColor={annotationColor}
+                      annotationThickness={annotationThickness}
+                      className="pitchlab-mobile-drawer__panel"
+                      currentFormation={currentFormation}
+                      placementTeam={placementTeam}
+                      selectedPlayer={selectedPlayer}
+                      toolMode={toolMode}
+                      onAddPlayer={handleAddPlayerFromControls}
+                      onAnnotationColorChange={handleAnnotationColorChange}
+                      onAnnotationThicknessChange={handleAnnotationThicknessChange}
+                      onFormationChange={handleFormationSelect}
+                      onPlacementTeamChange={handlePlacementTeamChange}
+                      onRemoveSelectedPlayer={handleRemoveSelectedPlayerFromControls}
+                      onSwitchSelectedPlayerTeam={handleSwitchSelectedPlayerTeamFromControls}
+                      onToolChange={handleToolChange}
+                      onClearArrows={handleClearArrows}
+                      onResetBoard={handleResetBoard}
+                    />
+                  </motion.div>
+                </>
+              ) : null}
+            </AnimatePresence>
+
+            <PitchBoard
+              boardState={boardState}
+              pendingPoint={pendingPoint}
+              pitchRef={pitchRef}
+              selectedPlayerId={selectedPlayerId}
+              toolMode={toolMode}
+              onPitchPointerDown={handlePitchPointerDown}
+              onPlayerPointerDown={(playerId, event) => {
+                setSelectedPlayerId(playerId);
+                if (toolMode !== 'select') {
+                  event.stopPropagation();
+                  return;
+                }
+
                 event.stopPropagation();
-                return;
-              }
+                dragOriginRef.current = boardStateRef.current;
+                dragPointerIdRef.current = event.pointerId;
+                dragStartClientRef.current = {
+                  x: event.clientX,
+                  y: event.clientY,
+                };
+                didDragPlayerRef.current = false;
+                setDraggingPlayerId(playerId);
+              }}
+            />
+          </div>
 
-              event.stopPropagation();
-              dragOriginRef.current = boardStateRef.current;
-              dragPointerIdRef.current = event.pointerId;
-              dragStartClientRef.current = {
-                x: event.clientX,
-                y: event.clientY,
-              };
-              didDragPlayerRef.current = false;
-              setDraggingPlayerId(playerId);
-            }}
-          />
-          <PlaySidebar
-            activePlayId={activePlayId}
-            activeShareLink={activeShareLink}
-            savedPlays={savedPlays}
-            shareStatus={shareStatus}
-            onDeletePlay={handleDeletePlay}
-            onLoadPlay={handleLoadPlay}
-          />
+          <div className="order-3 xl:order-3">
+            <PlaySidebar
+              activePlayId={activePlayId}
+              activeShareLink={activeShareLink}
+              savedPlays={savedPlays}
+              shareStatus={shareStatus}
+              onDeletePlay={handleDeletePlay}
+              onLoadPlay={handleLoadPlay}
+            />
+          </div>
         </section>
       </div>
     </main>
@@ -559,7 +677,7 @@ const createBenchPlayer = (team: TeamSide, players: BoardState['players']) => {
     number: highestNumber + 1,
     team,
     x: team === 'home' ? 50 : 50,
-    y: team === 'home' ? 68 : 32,
+    y: team === 'home' ? 74 : 26,
   };
 };
 
