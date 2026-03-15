@@ -41,7 +41,9 @@ const AppHeader = ({
   const compactPlayLabel = playName.trim() || 'Untitled play';
 
   return (
-    <header className={`pitchlab-header${isFocusMode ? ' pitchlab-header--focus' : ''}`}>
+    <header
+      className={`pitchlab-header${isFocusMode ? ' pitchlab-header--focus' : ''}`}
+    >
       <div className="pitchlab-header__bar">
         <div className="pitchlab-header__bar-copy">
           <div className="pitchlab-header__brand">
@@ -88,25 +90,21 @@ const AppHeader = ({
       >
         <div className="pitchlab-header__summary">
           <div className="pitchlab-header__intro">
-            <div className="pitchlab-header__brand">
-              <img
-                className="pitchlab-header__brand-logo"
-                src="/assets/logo.png"
-                alt="PitchLab"
-              />
-              <span className="pitchlab-header__brand-text">PitchLab</span>
-            </div>
             <div>
-              <h1 className="pitchlab-header__title">Design smarter football.</h1>
+              <h1 className="pitchlab-header__title">Play smarter football.</h1>
               <p className="pitchlab-header__copy">
-                Shape the team, map the movement, and share a board players can read at
-                a glance.
+                Shape the team, map the movement, and share a board players can
+                read at a glance.
               </p>
             </div>
           </div>
 
           <div className="pitchlab-header__meta">
-            <div className="pitchlab-header__stats" role="status" aria-live="polite">
+            <div
+              className="pitchlab-header__stats"
+              role="status"
+              aria-live="polite"
+            >
               <div className="pitchlab-header__stat">
                 <span className="pitchlab-header__stat-label">Formation</span>
                 <strong className="pitchlab-header__stat-value">
@@ -126,7 +124,9 @@ const AppHeader = ({
                 </strong>
               </div>
             </div>
-            <p className="pitchlab-header__status">{shareStatus || 'Board ready'}</p>
+            <p className="pitchlab-header__status">
+              {shareStatus || 'Board ready'}
+            </p>
           </div>
         </div>
 
@@ -161,7 +161,10 @@ const AppHeader = ({
               </button>
             </div>
 
-            <button className="pitchlab-button pitchlab-header__primary" onClick={onSavePlay}>
+            <button
+              className="pitchlab-button pitchlab-header__primary"
+              onClick={onSavePlay}
+            >
               {saveLabel}
             </button>
           </div>
@@ -171,7 +174,9 @@ const AppHeader = ({
               className="pitchlab-button pitchlab-button--ghost"
               onClick={onToggleOrientation}
             >
-              {boardState.orientation === 'portrait' ? 'Landscape view' : 'Portrait view'}
+              {boardState.orientation === 'portrait'
+                ? 'Landscape view'
+                : 'Portrait view'}
             </button>
             <button
               className="pitchlab-button pitchlab-button--ghost pitchlab-header__focus-toggle"
@@ -185,7 +190,10 @@ const AppHeader = ({
             >
               Save + new board
             </button>
-            <button className="pitchlab-button pitchlab-button--ghost" onClick={onShare}>
+            <button
+              className="pitchlab-button pitchlab-button--ghost"
+              onClick={onShare}
+            >
               Copy share link
             </button>
           </div>
